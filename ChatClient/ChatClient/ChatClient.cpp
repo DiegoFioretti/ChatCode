@@ -51,48 +51,70 @@ int main(void)
 
 	//start communication
 
-	FD_SET fds;
-	struct timeval tv;
-
-	FD_ZERO(&fds);
-	FD_SET(s, &fds);
-
-	tv.tv_sec = 0;
-	tv.tv_usec = 30000;
-
-	int n = select(s, &fds, NULL, NULL, &tv);
-
+	int point = 0;
+	memset(message, '\0', BUFLEN);
 	while (1)
 	{
-		printf("Enter message : ");
-		gets_s(message);
+		//printf("Enter message : ");
+		//gets_s(message);
 
 		//send the message
+		/*
 		if (sendto(s, message, strlen(message), 0, (struct sockaddr *) &si_other, slen) == SOCKET_ERROR)
 		{
 			printf("sendto() failed with error code : %d", WSAGetLastError());
 			exit(EXIT_FAILURE);
-		}
-
-		while (kbhit())
-		{
+		}*/
+		point = 0;
+		
+		while (_kbhit()){
 			char cur = _getch();
-			if (point > BUFLEN - 2)
-				point = BUFLEN - 2;
+			if (cur == 13){
+				if (sendto(s, message, strlen(message), 0, (struct sockaddr *) &si_other, slen) == SOCKET_ERROR)
+				{
+					printf("sendto() failed with error code : %d", WSAGetLastError());
+					exit(EXIT_FAILURE);
+				}
+				memset(message, '\0', BUFLEN);
+				point = 0;
+			}
+			else
+			{
+				if (point > BUFLEN - 2)
+					point = BUFLEN - 2;
+				message[point] = cur;
+				point++;
+			}
 		}
-
 		
 		//receive a reply and print it
 		//clear the buffer by filling null, it might have previously received data
+
+		FD_SET fds;
+		struct timeval tv;
+
+		FD_ZERO(&fds);
+		FD_SET(s, &fds);
+
+		tv.tv_sec = 0;
+		tv.tv_usec = 30000;
+
+		int n = select(s, &fds, NULL, NULL, &tv);
 		memset(buf, '\0', BUFLEN);
+		
 		//try to receive some data, this is a blocking call
-		if (recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen) == SOCKET_ERROR)
-		{
-			printf("recvfrom() failed with error code : %d", WSAGetLastError());
+		if (n > 0){
+			memset(buf, '\0', BUFLEN);
+			if (recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen) == SOCKET_ERROR){
+				printf("recvfrom() failed with error code : %d", WSAGetLastError());
+				exit(EXIT_FAILURE);
+			}
+			puts(buf);
+		}
+		if (n < 0){
+			printf("Error");
 			exit(EXIT_FAILURE);
 		}
-
-		puts(buf);
 	}
 
 	closesocket(s);

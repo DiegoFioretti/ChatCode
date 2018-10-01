@@ -143,39 +143,14 @@ int main()
 	//keep listening for data
 	//list<struct sockaddr_in>::iterator itlogged = generalusers.begin();
 	while (1){
-		printf("Waiting for data...");
+		//printf("Waiting for data...");
 		fflush(stdout);
 
 		//clear the buffer by filling null, it might have previously received data
 		memset(buf, '\0', BUFLEN);
 
 		//try to receive some data, this is a blocking call
-		if ((recv_len = recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen)) == SOCKET_ERROR){
-			printf("recvfrom() failed with error code : %d", WSAGetLastError());
-			exit(EXIT_FAILURE);
-		}
-
-		//print details of the client/peer and the data received
-		printf("Received packet from %s:%d\n", inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
 		
-		if (CheckUserIdentity(si_other)){
-			if (buf[0] == '#') {
-				Command(buf, si_other);
-			}
-			else{
-				cout<<GUserName(si_other).c_str()<<": "<<buf<<endl;
-				serverAnswer = GUserName(si_other) + ": "+ buf;
-			}
-		}
-		else{
-			if (buf[0] == '#') {
-				Command(buf, si_other);
-			}
-			else{
-				printf("User not registered, use #login \n");
-				serverAnswer = "User not registered, use #login + your desired name";
-			}
-		}
 
 		//now reply the client with the same data
 		/*
@@ -186,15 +161,58 @@ int main()
 		}
 		*/
 		//itlogged = generalusers.begin();
-		for (size_t i = 0; i < generalusers.size(); i++){
-			if (sendto(s, serverAnswer.c_str(), serverAnswer.length(), 0, (struct sockaddr*) &generalusers[i], slen) == SOCKET_ERROR){
-				printf("sendto() failed with error code : %d", WSAGetLastError());
+		FD_SET fds;
+		struct timeval tv;
+
+		FD_ZERO(&fds);
+		FD_SET(s, &fds);
+
+		tv.tv_sec = 0;
+		tv.tv_usec = 30000;
+
+		int n = select(s, &fds, NULL, NULL, &tv);
+		if (n>0){
+			if ((recv_len = recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen)) == SOCKET_ERROR) {
+				printf("recvfrom() failed with error code : %d", WSAGetLastError());
 				exit(EXIT_FAILURE);
 			}
-			else{
-				//itlogged++;
+
+			//print details of the client/peer and the data received
+			printf("Received packet from %s:%d\n", inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
+
+			if (CheckUserIdentity(si_other)) {
+				if (buf[0] == '#') {
+					Command(buf, si_other);
+				}
+				else {
+					cout << GUserName(si_other).c_str() << ": " << buf << endl;
+					serverAnswer = GUserName(si_other) + ": " + buf;
+				}
+			}
+			else {
+				if (buf[0] == '#') {
+					Command(buf, si_other);
+				}
+				else {
+					printf("User not registered, use #login \n");
+					serverAnswer = "User not registered, use #login + your desired name";
+				}
+			}
+
+			for (size_t i = 0; i < generalusers.size(); i++) {
+				if (sendto(s, serverAnswer.c_str(), serverAnswer.length(), 0, (struct sockaddr*) &generalusers[i], slen) == SOCKET_ERROR) {
+					printf("sendto() failed with error code : %d", WSAGetLastError());
+					exit(EXIT_FAILURE);
+				}
+				else {
+					//itlogged++;
+				}
 			}
 		}
+		if (n<0){
+			printf("error");
+		}
+		
 		//itlogged = generalusers.begin();
 	}
 
