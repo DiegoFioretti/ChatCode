@@ -55,8 +55,8 @@ int main(void)
 	memset(message, '\0', BUFLEN);
 	while (1)
 	{
-		//printf("Enter message : ");
-		//gets_s(message);
+		printf("Enter message : ");
+		gets_s(message);
 
 		//send the message
 		/*
@@ -110,8 +110,12 @@ int main(void)
 				exit(EXIT_FAILURE);
 			}
 			puts(buf);
+			printf("\r",buf,"\n");
 		}
-		if (n < 0){
+		else if (n == 0) {
+			
+		}
+		else if (n < 0){
 			printf("Error");
 			exit(EXIT_FAILURE);
 		}

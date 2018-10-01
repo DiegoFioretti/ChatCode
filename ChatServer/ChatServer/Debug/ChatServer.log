@@ -1,3 +1,4 @@
 ﻿  ChatServer.cpp
-c:\users\administrador\desktop\chatserver\chatserver\chatserver.cpp(34): warning C4244: 'argumento': conversión de 'time_t' a 'unsigned int'; posible pérdida de datos
-  ChatServer.vcxproj -> C:\Users\Administrador\Desktop\ChatServer\Debug\ChatServer.exe
+c:\users\diego\documents\clones\chatcode\chatserver\chatserver\chatserver.cpp(226): warning C4474: 'printf' : too many arguments passed for format string
+  c:\users\diego\documents\clones\chatcode\chatserver\chatserver\chatserver.cpp(226): note: placeholders and their parameters expect 0 variadic arguments, but 1 were provided
+  ChatServer.vcxproj -> C:\Users\diego\Documents\Clones\ChatCode\ChatServer\Debug\ChatServer.exe

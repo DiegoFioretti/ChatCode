@@ -2,6 +2,7 @@
 #include <iostream>
 #include <list>
 #include <vector>
+//#include <windows.h>
 /*
 Simple UDP Server
 */
@@ -21,6 +22,18 @@ using namespace std;
 
 string serverAnswer = "none";
 vector<struct sockaddr_in> generalusers;
+
+/*
+void ShowConsoleCursor(bool showFlag)
+{
+	HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	CONSOLE_CURSOR_INFO     cursorInfo;
+
+	GetConsoleCursorInfo(out, &cursorInfo);
+	cursorInfo.bVisible = showFlag; // set the cursor visibility
+	SetConsoleCursorInfo(out, &cursorInfo);
+}*/
 
 struct User {
 	string _name;
@@ -113,6 +126,7 @@ int main()
 	WSADATA wsa;
 
 	slen = sizeof(si_other);
+	//ShowConsoleCursor(false);
 
 	//Initialise winsock
 	printf("\nInitialising Winsock...");
@@ -143,7 +157,7 @@ int main()
 	//keep listening for data
 	//list<struct sockaddr_in>::iterator itlogged = generalusers.begin();
 	while (1){
-		//printf("Waiting for data...");
+		
 		fflush(stdout);
 
 		//clear the buffer by filling null, it might have previously received data
@@ -208,11 +222,17 @@ int main()
 					//itlogged++;
 				}
 			}
+
+			printf("\n",serverAnswer.c_str());
+			printf("\n");
 		}
-		if (n<0){
+		else if (n == 0) {
+			printf("Waiting for data...\r");
+		}
+		else if (n<0){
 			printf("error");
 		}
-		
+		//fflush(stdout);
 		//itlogged = generalusers.begin();
 	}
 
