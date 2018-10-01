@@ -1,4 +1,7 @@
 #include "stdafx.h"
+#include <conio.h>
+#include <time.h>
+#include <iostream>
 
 /*
 Simple udp client
@@ -47,6 +50,18 @@ int main(void)
 	si_other.sin_addr.S_un.S_addr = inet_addr(SERVER);
 
 	//start communication
+
+	FD_SET fds;
+	struct timeval tv;
+
+	FD_ZERO(&fds);
+	FD_SET(s, &fds);
+
+	tv.tv_sec = 0;
+	tv.tv_usec = 30000;
+
+	int n = select(s, &fds, NULL, NULL, &tv);
+
 	while (1)
 	{
 		printf("Enter message : ");
@@ -59,6 +74,14 @@ int main(void)
 			exit(EXIT_FAILURE);
 		}
 
+		while (kbhit())
+		{
+			char cur = _getch();
+			if (point > BUFLEN - 2)
+				point = BUFLEN - 2;
+		}
+
+		
 		//receive a reply and print it
 		//clear the buffer by filling null, it might have previously received data
 		memset(buf, '\0', BUFLEN);

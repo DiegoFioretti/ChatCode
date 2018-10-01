@@ -1,8 +1,7 @@
 ﻿#include "stdafx.h"
 #include <iostream>
 #include <list>
-#include <time.h>
-#include <random>
+#include <vector>
 /*
 Simple UDP Server
 */
@@ -16,23 +15,25 @@ Simple UDP Server
 
 #define BUFLEN 512  //Max length of buffer
 #define PORT 8888   //The port on which to listen for incoming data
+#define UNLEN 25 //Max length of user name 
 
 using namespace std;
 
 string serverAnswer = "none";
+vector<struct sockaddr_in> generalusers;
 
 struct User {
 	string _name;
 	sockaddr_in _userip;
 	sockaddr_in _userport;
+	string room;
 };
 
 list<User> userList;
 
-void SetUserName(sockaddr_in loginip) {
+void SetUserName(sockaddr_in loginip, string newname) {
 	User k;
-	srand(time(NULL));
-	k._name = "GUEST"+rand() % 1500;
+	k._name = newname;
 	k._userip.sin_addr = loginip.sin_addr;
 	k._userport.sin_port = loginip.sin_port;
 	userList.push_back(k);
@@ -42,7 +43,7 @@ string GUserName(sockaddr_in userip) {
 	list<User>::iterator it = userList.begin();
 	for (size_t i = 0; i < userList.size(); i++) {
 		if (it->_userip.sin_addr.S_un.S_addr == userip.sin_addr.S_un.S_addr && it->_userport.sin_port == userip.sin_port) {
-			return it->_name;
+			return it->_name.c_str();
 		}
 		it++;
 	}
@@ -62,34 +63,43 @@ bool CheckUserIdentity(sockaddr_in checkip) {
 	return exists;
 }
 
-
-
-void ServerReturn() {
+void ServerReturn(){
 
 }
 
 void Command(string _buf, sockaddr_in user) {
+	char auxstring[UNLEN];
+	int auxnum = 0;
+	memset(auxstring, '\0', UNLEN);
 	if (_buf == "#//<1/0>") {
-		printf("SYSTEM OVERDRIVE. SHUTTING DOWN.\n");
-		serverAnswer = "SYSTEM OVERDRIVE. SHUTTING DOWN.\n";
+		printf("SHUTTING DOWN SERVER.\n");
 		exit(EXIT_FAILURE);
 	}
 	if (_buf == "#chinesemafia") {
 		printf("(-_(-_(-_-)_-)_-)\n");
 		serverAnswer = "(-_(-_(-_-)_-)_-)\n";
 	}
-	if (_buf == "#login") {
-		printf("Login new user\n");
+	if (_buf[1] == 'l' && _buf[2] == 'o' && _buf[3] == 'g' && _buf[4] == 'i' && _buf[5] == 'n' && _buf[6] == ' ') {
+		printf("Logging new user\n");
 		if (!CheckUserIdentity(user)){
-			SetUserName(user);
-			serverAnswer = "Welcome user " + GUserName(user);
+			if (_buf.length() - 7 > UNLEN - 1){
+				serverAnswer = "Username too long. Max characters is 24";
+			}
+			else{
+				for (size_t i = 7; i < _buf.length(); i++) {
+					auxstring[auxnum] = _buf[i];
+					auxnum++;
+				}
+				SetUserName(user, auxstring);
+				generalusers.push_back(user);
+				serverAnswer = "Welcome user " + GUserName(user);
+			}
 		}
 		else{
 			serverAnswer = "You are already logged in!\n";
 		}
 	}
-	else
-	{
+	else{
 		printf("Data: %s\n", "Invalid Command.");
 	}
 }
@@ -124,16 +134,15 @@ int main()
 	server.sin_port = htons(PORT);
 
 	//Bind
-	if (bind(s, (struct sockaddr *)&server, sizeof(server)) == SOCKET_ERROR)
-	{
+	if (bind(s, (struct sockaddr *)&server, sizeof(server)) == SOCKET_ERROR){
 		printf("Bind failed with error code : %d", WSAGetLastError());
 		exit(EXIT_FAILURE);
 	}
 	puts("Bind done");
 
 	//keep listening for data
-	while (1)
-	{
+	//list<struct sockaddr_in>::iterator itlogged = generalusers.begin();
+	while (1){
 		printf("Waiting for data...");
 		fflush(stdout);
 
@@ -141,8 +150,7 @@ int main()
 		memset(buf, '\0', BUFLEN);
 
 		//try to receive some data, this is a blocking call
-		if ((recv_len = recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen)) == SOCKET_ERROR)
-		{
+		if ((recv_len = recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen)) == SOCKET_ERROR){
 			printf("recvfrom() failed with error code : %d", WSAGetLastError());
 			exit(EXIT_FAILURE);
 		}
@@ -156,7 +164,7 @@ int main()
 			}
 			else{
 				cout<<GUserName(si_other).c_str()<<": "<<buf<<endl;
-				serverAnswer = buf;
+				serverAnswer = GUserName(si_other) + ": "+ buf;
 			}
 		}
 		else{
@@ -164,18 +172,30 @@ int main()
 				Command(buf, si_other);
 			}
 			else{
-				printf("User not registered, use #login\n");
-				serverAnswer = "User not registered, use #login";
+				printf("User not registered, use #login \n");
+				serverAnswer = "User not registered, use #login + your desired name";
 			}
 		}
-		
 
 		//now reply the client with the same data
+		/*
 		if (sendto(s, serverAnswer.c_str(), serverAnswer.length(), 0, (struct sockaddr*) &si_other, slen) == SOCKET_ERROR)
 		{
 			printf("sendto() failed with error code : %d", WSAGetLastError());
 			exit(EXIT_FAILURE);
 		}
+		*/
+		//itlogged = generalusers.begin();
+		for (size_t i = 0; i < generalusers.size(); i++){
+			if (sendto(s, serverAnswer.c_str(), serverAnswer.length(), 0, (struct sockaddr*) &generalusers[i], slen) == SOCKET_ERROR){
+				printf("sendto() failed with error code : %d", WSAGetLastError());
+				exit(EXIT_FAILURE);
+			}
+			else{
+				//itlogged++;
+			}
+		}
+		//itlogged = generalusers.begin();
 	}
 
 	closesocket(s);
