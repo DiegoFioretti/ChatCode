@@ -1,0 +1,16 @@
+Whil _kbhit()
+	char cur = _getch()
+	if point > buflen - 2
+		point = buflen - 2
+	cout
+_---------------------------------------
+fs_set fds
+struct timeval tv;
+
+FD_ZERO(&fds)
+FS_SET(s, &fds)
+
+tv.tv_sec = 0
+tv.tv_usec = 30000;
+
+int n = select(s,&fds,NULL,NULL,&tv)
