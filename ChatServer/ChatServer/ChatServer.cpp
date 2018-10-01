@@ -1,6 +1,8 @@
 ﻿#include "stdafx.h"
 #include <iostream>
 #include <list>
+#include <time.h>
+#include <random>
 /*
 Simple UDP Server
 */
@@ -17,12 +19,78 @@ Simple UDP Server
 
 using namespace std;
 
-void Command(string _buf) {
-	if (_buf == "@1/0") {
+string serverAnswer = "none";
+
+struct User {
+	string _name;
+	sockaddr_in _userip;
+	sockaddr_in _userport;
+};
+
+list<User> userList;
+
+void SetUserName(sockaddr_in loginip) {
+	User k;
+	srand(time(NULL));
+	k._name = "GUEST"+rand() % 1500;
+	k._userip.sin_addr = loginip.sin_addr;
+	k._userport.sin_port = loginip.sin_port;
+	userList.push_back(k);
+}
+
+string GUserName(sockaddr_in userip) {
+	list<User>::iterator it = userList.begin();
+	for (size_t i = 0; i < userList.size(); i++) {
+		if (it->_userip.sin_addr.S_un.S_addr == userip.sin_addr.S_un.S_addr && it->_userport.sin_port == userip.sin_port) {
+			return it->_name;
+		}
+		it++;
+	}
+	return "none";
+}
+
+bool CheckUserIdentity(sockaddr_in checkip) {
+	bool exists = false;
+	list<User>::iterator it = userList.begin();
+	for (size_t i = 0; i < userList.size(); i++){
+		if (it->_userip.sin_addr.S_un.S_addr == checkip.sin_addr.S_un.S_addr && it->_userport.sin_port == checkip.sin_port){
+			exists = true;
+			break;
+		}
+		it++;
+	}
+	return exists;
+}
+
+
+
+void ServerReturn() {
+
+}
+
+void Command(string _buf, sockaddr_in user) {
+	if (_buf == "#//<1/0>") {
+		printf("SYSTEM OVERDRIVE. SHUTTING DOWN.\n");
+		serverAnswer = "SYSTEM OVERDRIVE. SHUTTING DOWN.\n";
 		exit(EXIT_FAILURE);
 	}
-	if (_buf == "@lenny") {
-		printf("Data: %s\n", "( ͡° ͜ʖ ͡°)");
+	if (_buf == "#chinesemafia") {
+		printf("(-_(-_(-_-)_-)_-)\n");
+		serverAnswer = "(-_(-_(-_-)_-)_-)\n";
+	}
+	if (_buf == "#login") {
+		printf("Login new user\n");
+		if (!CheckUserIdentity(user)){
+			SetUserName(user);
+			serverAnswer = "Welcome user " + GUserName(user);
+		}
+		else{
+			serverAnswer = "You are already logged in!\n";
+		}
+	}
+	else
+	{
+		printf("Data: %s\n", "Invalid Command.");
 	}
 }
 
@@ -38,16 +106,14 @@ int main()
 
 	//Initialise winsock
 	printf("\nInitialising Winsock...");
-	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
-	{
+	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0){
 		printf("Failed. Error Code : %d", WSAGetLastError());
 		exit(EXIT_FAILURE);
 	}
 	printf("Initialised.\n");
 
 	//Create a socket
-	if ((s = socket(AF_INET, SOCK_DGRAM, 0)) == INVALID_SOCKET)
-	{
+	if ((s = socket(AF_INET, SOCK_DGRAM, 0)) == INVALID_SOCKET){
 		printf("Could not create socket : %d", WSAGetLastError());
 	}
 	printf("Socket created.\n");
@@ -83,14 +149,29 @@ int main()
 
 		//print details of the client/peer and the data received
 		printf("Received packet from %s:%d\n", inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
-		printf("Data: %s\n", buf);
-
-		if (buf[0]=='@'){
-			Command(buf);
+		
+		if (CheckUserIdentity(si_other)){
+			if (buf[0] == '#') {
+				Command(buf, si_other);
+			}
+			else{
+				cout<<GUserName(si_other).c_str()<<": "<<buf<<endl;
+				serverAnswer = buf;
+			}
 		}
+		else{
+			if (buf[0] == '#') {
+				Command(buf, si_other);
+			}
+			else{
+				printf("User not registered, use #login\n");
+				serverAnswer = "User not registered, use #login";
+			}
+		}
+		
 
 		//now reply the client with the same data
-		if (sendto(s, buf, recv_len, 0, (struct sockaddr*) &si_other, slen) == SOCKET_ERROR)
+		if (sendto(s, serverAnswer.c_str(), serverAnswer.length(), 0, (struct sockaddr*) &si_other, slen) == SOCKET_ERROR)
 		{
 			printf("sendto() failed with error code : %d", WSAGetLastError());
 			exit(EXIT_FAILURE);

@@ -1,5 +1,3 @@
 ﻿  ChatServer.cpp
-c:\users\administrador\desktop\chatserver\chatserver\chatserver.cpp(25): warning C4566: el carácter representado por el nombre de carácter universal '\u0361' no se puede representar en la página de códigos actual (1252)
-c:\users\administrador\desktop\chatserver\chatserver\chatserver.cpp(25): warning C4566: el carácter representado por el nombre de carácter universal '\u035C' no se puede representar en la página de códigos actual (1252)
-c:\users\administrador\desktop\chatserver\chatserver\chatserver.cpp(25): warning C4566: el carácter representado por el nombre de carácter universal '\u0296' no se puede representar en la página de códigos actual (1252)
+c:\users\administrador\desktop\chatserver\chatserver\chatserver.cpp(34): warning C4244: 'argumento': conversión de 'time_t' a 'unsigned int'; posible pérdida de datos
   ChatServer.vcxproj -> C:\Users\Administrador\Desktop\ChatServer\Debug\ChatServer.exe
