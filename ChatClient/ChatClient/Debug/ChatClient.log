@@ -1,4 +1,0 @@
-﻿  ChatClient.cpp
-c:\users\diego\documents\clones\chatcode\chatclient\chatclient\chatclient.cpp(113): warning C4474: 'printf' : too many arguments passed for format string
-  c:\users\diego\documents\clones\chatcode\chatclient\chatclient\chatclient.cpp(113): note: placeholders and their parameters expect 0 variadic arguments, but 2 were provided
-  ChatClient.vcxproj -> C:\Users\diego\Documents\Clones\ChatCode\ChatClient\Debug\ChatClient.exe

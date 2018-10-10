@@ -19,11 +19,14 @@ Silver Moon (m00n.silv3r@gmail.com)
 #define BUFLEN 512  //Max length of buffer
 #define PORT 8888   //The port on which to listen for incoming data
 
+using namespace std;
+
 int main(void)
 {
 	struct sockaddr_in si_other;
 	int s, slen = sizeof(si_other);
 	char buf[BUFLEN];
+	string eraser;
 	char message[BUFLEN];
 	WSADATA wsa;
 
@@ -53,23 +56,22 @@ int main(void)
 
 	int point = 0;
 	memset(message, '\0', BUFLEN);
-	while (1)
-	{
-		printf("Enter message : ");
-		gets_s(message);
+	printf("Welcome to the chat, you need to #login to access the functions this applications has\n");
+	while (1) {
 
 		//send the message
 		/*
 		if (sendto(s, message, strlen(message), 0, (struct sockaddr *) &si_other, slen) == SOCKET_ERROR)
 		{
-			printf("sendto() failed with error code : %d", WSAGetLastError());
-			exit(EXIT_FAILURE);
+		printf("sendto() failed with error code : %d", WSAGetLastError());
+		exit(EXIT_FAILURE);
 		}*/
-		point = 0;
-		
-		while (_kbhit()){
+		//point = 0;
+
+		while (_kbhit()) {
 			char cur = _getch();
-			if (cur == 13){
+			if (cur == 13) {
+				//message[point + 1] = '\n';
 				if (sendto(s, message, strlen(message), 0, (struct sockaddr *) &si_other, slen) == SOCKET_ERROR)
 				{
 					printf("sendto() failed with error code : %d", WSAGetLastError());
@@ -77,16 +79,38 @@ int main(void)
 				}
 				memset(message, '\0', BUFLEN);
 				point = 0;
+				cout<<endl;
 			}
-			else
-			{
+			else if (cur == 8){
+				point--;
+				if (point < 0)
+					point = 0;
+				message[point] = '\0';
+				
+				std::cout << '\r';
+				std::string mess2 = "Enter message : ";
+				for (int i = 0; i < mess2.length(); i++)
+				{
+					std::cout << ' ';
+				}
+				for (int i = 0; i < BUFLEN; i++)
+				{
+					if (message[i] != '\0')
+						std::cout << ' ';
+					else
+						i = BUFLEN;
+				}
+				std::cout << ' ';
+				std::cout << '\r' << "Enter message : " << message;
+			}
+			else{
 				if (point > BUFLEN - 2)
 					point = BUFLEN - 2;
 				message[point] = cur;
 				point++;
 			}
 		}
-		
+
 		//receive a reply and print it
 		//clear the buffer by filling null, it might have previously received data
 
@@ -101,21 +125,21 @@ int main(void)
 
 		int n = select(s, &fds, NULL, NULL, &tv);
 		memset(buf, '\0', BUFLEN);
-		
+
 		//try to receive some data, this is a blocking call
-		if (n > 0){
+		if (n > 0) {
 			memset(buf, '\0', BUFLEN);
-			if (recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen) == SOCKET_ERROR){
+			if (recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen) == SOCKET_ERROR) {
 				printf("recvfrom() failed with error code : %d", WSAGetLastError());
 				exit(EXIT_FAILURE);
 			}
 			puts(buf);
-			printf("\r",buf,"\n");
 		}
 		else if (n == 0) {
-			
+			//printf("\rEnter message: ", buf);
+			cout << "\rEnter message : " << message;
 		}
-		else if (n < 0){
+		else if (n < 0) {
 			printf("Error");
 			exit(EXIT_FAILURE);
 		}

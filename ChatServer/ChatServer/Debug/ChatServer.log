@@ -1,4 +1,0 @@
-﻿  ChatServer.cpp
-c:\users\diego\documents\clones\chatcode\chatserver\chatserver\chatserver.cpp(226): warning C4474: 'printf' : too many arguments passed for format string
-  c:\users\diego\documents\clones\chatcode\chatserver\chatserver\chatserver.cpp(226): note: placeholders and their parameters expect 0 variadic arguments, but 1 were provided
-  ChatServer.vcxproj -> C:\Users\diego\Documents\Clones\ChatCode\ChatServer\Debug\ChatServer.exe
